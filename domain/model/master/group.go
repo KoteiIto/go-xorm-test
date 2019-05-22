@@ -33,7 +33,8 @@ type Group struct {
 
 var (
 	_GroupTableName   = "group"
-	_GroupColumnNames = [6]string{"id", "name", "description", "created_at", "updated_at", "deleted_at"}
+	_GroupColumnNames = []string{"id", "name", "description", "created_at", "updated_at", "deleted_at"}
+	_GroupPrimaryKeys = []string{"id"}
 )
 
 // Table テーブル名を返却します
@@ -42,13 +43,13 @@ func (m Group) Table() string {
 }
 
 // Columns カラム名のスライスを返却します
-func (m Group) Columns() [6]string {
+func (m Group) Columns() []string {
 	return _GroupColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
 func (m Group) PrimaryKeys() []string {
-	return []string{"id"}
+	return _GroupPrimaryKeys
 }
 
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します

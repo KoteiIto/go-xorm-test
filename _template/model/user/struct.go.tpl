@@ -36,14 +36,10 @@ const (
 
 var (
 	_{{Mapper .Name}}TableName = "{{.Name}}"
-	_{{Mapper .Name}}ColumnNames = [{{len $table.Columns}}]string{ {{range $i,$e := $table.Columns}}{{if $i}},{{end}}"{{$e.Name}}"{{end}} }
+	_{{Mapper .Name}}ColumnNames = []string{ {{range $i,$e := $table.Columns}}{{if $i}},{{end}}"{{$e.Name}}"{{end}} }
+	_{{Mapper .Name}}PrimaryKeys = []string{ {{range $i,$e := $table.PrimaryKeys}}{{if $i}},{{end}}"{{$e}}"{{end}} }
+	{{range $i,$c := $table.Columns}}{{if ne (len $c.EnumOptions) 0}}_{{Mapper $table.Name}}{{Mapper $c.Name}}Enums = []string{ {{range $o, $_ := $c.EnumOptions}}"{{$o}}",{{end}} }{{end}}{{end}}
 )
-
-{{range $i,$c := $table.Columns}}
-{{if ne (len $c.EnumOptions) 0}}
-var {{Mapper $table.Name}}{{Mapper $c.Name}}Enums = [{{len $c.EnumOptions}}]string{ {{range $o, $_ := $c.EnumOptions}}"{{$o}}",{{end}} }
-{{end}}
-{{end}}
 
 // Table テーブル名を返却します
 func (m {{Mapper .Name}}) Table () string {
@@ -51,13 +47,13 @@ func (m {{Mapper .Name}}) Table () string {
 }
 
 // Columns カラム名のスライスを返却します
-func (m {{Mapper .Name}}) Columns () [{{len $table.Columns}}]string {
+func (m {{Mapper .Name}}) Columns () []string {
 	return _{{Mapper .Name}}ColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
 func (m {{Mapper .Name}}) PrimaryKeys () []string {
-	return []string{ {{range $i,$e := $table.PrimaryKeys}}{{if $i}},{{end}}"{{$e}}"{{end}} }
+	return _{{Mapper .Name}}PrimaryKeys
 }
 
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します
@@ -138,7 +134,7 @@ func (m {{Mapper .Name}}) Validate() error {
 
 		{{if and (eq $e.SQLType.Name "ENUM") }}
 			ok := false
-			for _, v := range {{Mapper $table.Name}}{{Mapper $e.Name}}Enums {
+			for _, v := range _{{Mapper $table.Name}}{{Mapper $e.Name}}Enums {
 				if m.{{Mapper $e.Name}} == v {
 					ok = true
 					break

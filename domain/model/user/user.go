@@ -33,7 +33,8 @@ type User struct {
 
 var (
 	_UserTableName   = "user"
-	_UserColumnNames = [6]string{"id", "email", "password_digest", "created_at", "updated_at", "deleted_at"}
+	_UserColumnNames = []string{"id", "email", "password_digest", "created_at", "updated_at", "deleted_at"}
+	_UserPrimaryKeys = []string{"id"}
 )
 
 // Table テーブル名を返却します
@@ -42,13 +43,13 @@ func (m User) Table() string {
 }
 
 // Columns カラム名のスライスを返却します
-func (m User) Columns() [6]string {
+func (m User) Columns() []string {
 	return _UserColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
 func (m User) PrimaryKeys() []string {
-	return []string{"id"}
+	return _UserPrimaryKeys
 }
 
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します

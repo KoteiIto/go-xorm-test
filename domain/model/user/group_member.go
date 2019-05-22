@@ -40,10 +40,10 @@ const (
 
 var (
 	_GroupMemberTableName   = "group_member"
-	_GroupMemberColumnNames = [7]string{"id", "user_id", "group_id", "role", "created_at", "updated_at", "deleted_at"}
+	_GroupMemberColumnNames = []string{"id", "user_id", "group_id", "role", "created_at", "updated_at", "deleted_at"}
+	_GroupMemberPrimaryKeys = []string{"id"}
+	_GroupMemberRoleEnums   = []string{"admin", "guest"}
 )
-
-var GroupMemberRoleEnums = [2]string{"admin", "guest"}
 
 // Table テーブル名を返却します
 func (m GroupMember) Table() string {
@@ -51,13 +51,13 @@ func (m GroupMember) Table() string {
 }
 
 // Columns カラム名のスライスを返却します
-func (m GroupMember) Columns() [7]string {
+func (m GroupMember) Columns() []string {
 	return _GroupMemberColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
 func (m GroupMember) PrimaryKeys() []string {
-	return []string{"id"}
+	return _GroupMemberPrimaryKeys
 }
 
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します
@@ -83,7 +83,7 @@ func (m GroupMember) Validate() error {
 	}
 
 	ok := false
-	for _, v := range GroupMemberRoleEnums {
+	for _, v := range _GroupMemberRoleEnums {
 		if m.Role == v {
 			ok = true
 			break

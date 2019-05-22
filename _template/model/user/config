@@ -1,0 +1,7 @@
+lang=go
+genJson=true
+prefix=cos_
+ignoreColumnsJSON=
+created=created_at
+updated=updated_at
+deleted=deleted_at

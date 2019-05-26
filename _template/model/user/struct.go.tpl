@@ -47,8 +47,8 @@ var (
 	{{range $i,$c := $table.Columns}}{{if ne (len $c.EnumOptions) 0}}_{{Mapper $table.Name}}{{Mapper $c.Name}}Enums = []string{ {{range $o, $_ := $c.EnumOptions}}"{{$o}}",{{end}} }{{end}}{{end}}
 )
 
-// Gen{{Mapper .Name}}Dto Dtoを返却します
-func Gen{{Mapper .Name}}Dto(e {{Mapper .Name}}) {{Mapper .Name}}Dto {
+// New{{Mapper .Name}}Dto Dtoを返却します
+func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) {{Mapper .Name}}Dto {
 	return {{Mapper .Name}}Dto {
 		entity: e,
 		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),

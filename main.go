@@ -24,25 +24,25 @@ func main() {
 	}
 
 	result, err := mysql.Transaction(func(tx db.Session) (interface{}, error) {
-		user1 := user.GenGroupMemberDto(user.GroupMember{
+		user1 := user.NewGroupMemberDto(user.GroupMember{
 			UserId:  1,
 			GroupId: 100,
 			Role:    user.GroupMemberRoleAdmin,
 		})
 
-		_, err := tx.Insert(&user1)
+		_, err := tx.Insert(user1)
 		if err != nil {
 			return nil, err
 		}
 
 		user1.SetRole(user.GroupMemberRoleGuest)
 
-		_, err = tx.Update(&user1)
+		_, err = tx.Update(user1)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = tx.Delete(&user1)
+		_, err = tx.Delete(user1)
 		if err != nil {
 			return nil, err
 		}

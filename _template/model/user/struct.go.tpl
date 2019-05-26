@@ -48,8 +48,8 @@ var (
 )
 
 // New{{Mapper .Name}}Dto Dtoを返却します
-func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) {{Mapper .Name}}Dto {
-	return {{Mapper .Name}}Dto {
+func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) *{{Mapper .Name}}Dto {
+	return &{{Mapper .Name}}Dto {
 		entity: e,
 		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),
 	}

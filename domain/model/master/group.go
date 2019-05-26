@@ -41,9 +41,9 @@ var (
 	_GroupPrimaryKeys = []string{"id"}
 )
 
-// GenGroupDto Dtoを返却します
-func GenGroupDto(e Group) GroupDto {
-	return GroupDto{
+// NewGroupDto Dtoを返却します
+func NewGroupDto(e Group) *GroupDto {
+	return &GroupDto{
 		entity:           e,
 		updatedColumnMap: make(map[string]struct{}, 6),
 	}

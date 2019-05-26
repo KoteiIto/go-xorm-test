@@ -43,9 +43,9 @@ var (
 	_UserPrimaryKeys = []string{"id"}
 )
 
-// GenUserDto Dtoを返却します
-func GenUserDto(e User) UserDto {
-	return UserDto{
+// NewUserDto Dtoを返却します
+func NewUserDto(e User) *UserDto {
+	return &UserDto{
 		entity:           e,
 		updatedColumnMap: make(map[string]struct{}, 7),
 	}

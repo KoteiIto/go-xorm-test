@@ -19,8 +19,8 @@ type GroupMember struct {
 	GroupId int `json:"group_id" xorm:"not null pk unique(uq_group_member_col_user_group) INT(11)"`
 	// Role `json:"role" xorm:"not null ENUM('admin','guest')"`
 	Role string `json:"role" xorm:"not null ENUM('admin','guest')"`
-	// Version `json:"version" xorm:"version"`
-	Version int `json:"version" xorm:"version"`
+	// Version `json:"version" xorm:"not null INT(11)"`
+	Version int `json:"version" xorm:"not null INT(11)"`
 	// CreatedAt `json:"created_at" xorm:"not null created DATETIME"`
 	CreatedAt time.Time `json:"created_at" xorm:"not null created DATETIME"`
 	// UpdatedAt `json:"updated_at" xorm:"not null updated DATETIME"`
@@ -49,9 +49,9 @@ var (
 	_GroupMemberRoleEnums   = []string{"admin", "guest"}
 )
 
-// GenGroupMemberDto Dtoを返却します
-func GenGroupMemberDto(e GroupMember) GroupMemberDto {
-	return GroupMemberDto{
+// NewGroupMemberDto Dtoを返却します
+func NewGroupMemberDto(e GroupMember) *GroupMemberDto {
+	return &GroupMemberDto{
 		entity:           e,
 		updatedColumnMap: make(map[string]struct{}, 7),
 	}

@@ -13,24 +13,28 @@ import (
 // +gen slice:"Where,GroupBy[int],Any"
 type GroupMember struct {
 
-	// Id `json:"id" xorm:"pk BIGINT(20)"`
-	Id int64 `json:"id" xorm:"pk BIGINT(20)"`
-	// UserId `json:"user_id" xorm:"not null unique(uq_group_member_col_user_group) BIGINT(20)"`
-	UserId int64 `json:"user_id" xorm:"not null unique(uq_group_member_col_user_group) BIGINT(20)"`
-	// GroupId `json:"group_id" xorm:"not null unique(uq_group_member_col_user_group) INT(11)"`
-	GroupId int `json:"group_id" xorm:"not null unique(uq_group_member_col_user_group) INT(11)"`
+	// UserId `json:"user_id" xorm:"not null pk unique(uq_group_member_col_user_group) BIGINT(20)"`
+	UserId int64 `json:"user_id" xorm:"not null pk unique(uq_group_member_col_user_group) BIGINT(20)"`
+	// GroupId `json:"group_id" xorm:"not null pk unique(uq_group_member_col_user_group) INT(11)"`
+	GroupId int `json:"group_id" xorm:"not null pk unique(uq_group_member_col_user_group) INT(11)"`
 	// Role `json:"role" xorm:"not null ENUM('admin','guest')"`
 	Role string `json:"role" xorm:"not null ENUM('admin','guest')"`
+	// Version `json:"version" xorm:"version"`
+	Version int `json:"version" xorm:"version"`
 	// CreatedAt `json:"created_at" xorm:"not null created DATETIME"`
 	CreatedAt time.Time `json:"created_at" xorm:"not null created DATETIME"`
 	// UpdatedAt `json:"updated_at" xorm:"not null updated DATETIME"`
 	UpdatedAt time.Time `json:"updated_at" xorm:"not null updated DATETIME"`
 	// DeletedAt `json:"deleted_at" xorm:"deleted DATETIME"`
 	DeletedAt time.Time `json:"deleted_at" xorm:"deleted DATETIME"`
+}
 
-	isCreated bool `json:"-" xorm:"-"`
-	isUpdated bool `json:"-" xorm:"-"`
-	isDeleted bool `json:"-" xorm:"-"`
+type GroupMemberDto struct {
+	entity           GroupMember
+	updatedColumnMap map[string]struct{}
+	isCreated        bool
+	isUpdated        bool
+	isDeleted        bool
 }
 
 const (
@@ -40,107 +44,227 @@ const (
 
 var (
 	_GroupMemberTableName   = "group_member"
-	_GroupMemberColumnNames = []string{"id", "user_id", "group_id", "role", "created_at", "updated_at", "deleted_at"}
-	_GroupMemberPrimaryKeys = []string{"id"}
+	_GroupMemberColumnNames = []string{"user_id", "group_id", "role", "version", "created_at", "updated_at", "deleted_at"}
+	_GroupMemberPrimaryKeys = []string{"user_id", "group_id"}
 	_GroupMemberRoleEnums   = []string{"admin", "guest"}
 )
 
+// GenGroupMemberDto Dtoを返却します
+func GenGroupMemberDto(e GroupMember) GroupMemberDto {
+	return GroupMemberDto{
+		entity:           e,
+		updatedColumnMap: make(map[string]struct{}, 7),
+	}
+}
+
+// GetUserId getter for user_id
+func (m GroupMemberDto) GetUserId() int64 {
+	return m.entity.UserId
+}
+
+// GetGroupId getter for group_id
+func (m GroupMemberDto) GetGroupId() int {
+	return m.entity.GroupId
+}
+
+// SetRole setter for role
+func (m *GroupMemberDto) SetRole(Role string) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["role"] = struct{}{}
+	m.entity.Role = Role
+}
+
+// GetRole getter for role
+func (m GroupMemberDto) GetRole() string {
+	return m.entity.Role
+}
+
+// SetVersion setter for version
+func (m *GroupMemberDto) SetVersion(Version int) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["version"] = struct{}{}
+	m.entity.Version = Version
+}
+
+// GetVersion getter for version
+func (m GroupMemberDto) GetVersion() int {
+	return m.entity.Version
+}
+
+// SetCreatedAt setter for created_at
+func (m *GroupMemberDto) SetCreatedAt(CreatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["created_at"] = struct{}{}
+	m.entity.CreatedAt = CreatedAt
+}
+
+// GetCreatedAt getter for created_at
+func (m GroupMemberDto) GetCreatedAt() time.Time {
+	return m.entity.CreatedAt
+}
+
+// SetUpdatedAt setter for updated_at
+func (m *GroupMemberDto) SetUpdatedAt(UpdatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["updated_at"] = struct{}{}
+	m.entity.UpdatedAt = UpdatedAt
+}
+
+// GetUpdatedAt getter for updated_at
+func (m GroupMemberDto) GetUpdatedAt() time.Time {
+	return m.entity.UpdatedAt
+}
+
+// SetDeletedAt setter for deleted_at
+func (m *GroupMemberDto) SetDeletedAt(DeletedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["deleted_at"] = struct{}{}
+	m.entity.DeletedAt = DeletedAt
+}
+
+// GetDeletedAt getter for deleted_at
+func (m GroupMemberDto) GetDeletedAt() time.Time {
+	return m.entity.DeletedAt
+}
+
+// SetEntity テーブルのエンティティを設定します
+func (m *GroupMemberDto) SetEntity(e interface{}) {
+	m.entity = (e).(GroupMember)
+}
+
+// Entity テーブルのエンティティを返却します
+func (m GroupMemberDto) Entity() interface{} {
+	return m.entity
+}
+
+// PEntity テーブルのエンティティのポインタを返却します
+func (m *GroupMemberDto) PEntity() interface{} {
+	return &m.entity
+}
+
 // Table テーブル名を返却します
-func (m GroupMember) Table() string {
+func (m GroupMemberDto) Table() string {
 	return _GroupMemberTableName
 }
 
 // Columns カラム名のスライスを返却します
-func (m GroupMember) Columns() []string {
+func (m GroupMemberDto) Columns() []string {
 	return _GroupMemberColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
-func (m GroupMember) PrimaryKeys() []string {
+func (m GroupMemberDto) PrimaryKeys() []string {
 	return _GroupMemberPrimaryKeys
 }
 
+// CacheKey PrimaryKeyの値のスライスを返却します
+func (m GroupMemberDto) PrimaryKeyValues() []interface{} {
+	return []interface{}{
+		m.entity.UserId, m.entity.GroupId,
+	}
+}
+
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します
-func (m GroupMember) CacheKey() string {
+func (m GroupMemberDto) CacheKey() string {
 	return fmt.Sprintf(
-		"%v",
-		m.Id,
+		"%v_%v",
+		m.entity.UserId, m.entity.GroupId,
 	)
 }
 
-func (m GroupMember) Validate() error {
+func (m GroupMemberDto) UpdatedColumns() []string {
+	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
+	i := 0
+	for col := range m.updatedColumnMap {
+		cols[i] = col
+		i++
+	}
+	return cols
+}
 
-	if m.Id < -9223372036854775808 || 9223372036854775807 < m.Id {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Id", m.Id)
+func (m GroupMemberDto) Validate() error {
+
+	if m.entity.UserId < -9223372036854775808 || 9223372036854775807 < m.entity.UserId {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "UserId", m.entity.UserId)
 	}
 
-	if m.UserId < -9223372036854775808 || 9223372036854775807 < m.UserId {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "UserId", m.UserId)
-	}
-
-	if m.GroupId < -2147483648 || 2147483647 < m.GroupId {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "GroupId", m.GroupId)
+	if m.entity.GroupId < -2147483648 || 2147483647 < m.entity.GroupId {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "GroupId", m.entity.GroupId)
 	}
 
 	ok := false
 	for _, v := range _GroupMemberRoleEnums {
-		if m.Role == v {
+		if m.entity.Role == v {
 			ok = true
 			break
 		}
 	}
 	if !ok {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Role", m.Role)
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Role", m.entity.Role)
+	}
+
+	if m.entity.Version < -2147483648 || 2147483647 < m.entity.Version {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Version", m.entity.Version)
 	}
 
 	return nil
 }
 
 // IsCreated DBに存在しないレコードのモデルの場合はtrueを返却します
-func (m GroupMember) IsCreated() bool {
+func (m GroupMemberDto) IsCreated() bool {
 	return m.isCreated
 }
 
 // IsUpdated DBと差分があるレコードのモデルの場合はtrueを返却します
-func (m GroupMember) IsUpdated() bool {
+func (m GroupMemberDto) IsUpdated() bool {
 	return m.isUpdated
 }
 
 // IsDeleted DBには存在するが削除されるレコードのモデルの場合はtrueを返却します
-func (m GroupMember) IsDeleted() bool {
+func (m GroupMemberDto) IsDeleted() bool {
 	return m.isDeleted
 }
 
 // AsCreated DBにInsertするレコードのモデルとして設定する
-func (m *GroupMember) AsCreated() {
+func (m *GroupMemberDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
-func (m *GroupMember) AsUpdated() {
+func (m *GroupMemberDto) AsUpdated() {
 	if m != nil {
 		m.isUpdated = true
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
-func (m *GroupMember) AsDeleted() {
+func (m *GroupMemberDto) AsDeleted() {
 	if m != nil {
 		m.isDeleted = true
 	}
 }
 
 // ToMap Mapに変換します
-func (m GroupMember) ToMap() map[string]interface{} {
+func (m GroupMemberDto) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"Id":        m.Id,
-		"UserId":    m.UserId,
-		"GroupId":   m.GroupId,
-		"Role":      m.Role,
-		"CreatedAt": m.CreatedAt,
-		"UpdatedAt": m.UpdatedAt,
-		"DeletedAt": m.DeletedAt,
+		"UserId":    m.entity.UserId,
+		"GroupId":   m.entity.GroupId,
+		"Role":      m.entity.Role,
+		"Version":   m.entity.Version,
+		"CreatedAt": m.entity.CreatedAt,
+		"UpdatedAt": m.entity.UpdatedAt,
+		"DeletedAt": m.entity.DeletedAt,
 	}
 }

@@ -19,108 +19,248 @@ type User struct {
 	Email string `json:"email" xorm:"not null unique VARCHAR(255)"`
 	// PasswordDigest `json:"password_digest" xorm:"CHAR(100)"`
 	PasswordDigest string `json:"password_digest" xorm:"CHAR(100)"`
+	// Version `json:"version" xorm:"not null INT(11)"`
+	Version int `json:"version" xorm:"not null INT(11)"`
 	// CreatedAt `json:"created_at" xorm:"not null created DATETIME"`
 	CreatedAt time.Time `json:"created_at" xorm:"not null created DATETIME"`
 	// UpdatedAt `json:"updated_at" xorm:"not null updated DATETIME"`
 	UpdatedAt time.Time `json:"updated_at" xorm:"not null updated DATETIME"`
 	// DeletedAt `json:"deleted_at" xorm:"deleted DATETIME"`
 	DeletedAt time.Time `json:"deleted_at" xorm:"deleted DATETIME"`
+}
 
-	isCreated bool `json:"-" xorm:"-"`
-	isUpdated bool `json:"-" xorm:"-"`
-	isDeleted bool `json:"-" xorm:"-"`
+type UserDto struct {
+	entity           User
+	updatedColumnMap map[string]struct{}
+	isCreated        bool
+	isUpdated        bool
+	isDeleted        bool
 }
 
 var (
 	_UserTableName   = "user"
-	_UserColumnNames = []string{"id", "email", "password_digest", "created_at", "updated_at", "deleted_at"}
+	_UserColumnNames = []string{"id", "email", "password_digest", "version", "created_at", "updated_at", "deleted_at"}
 	_UserPrimaryKeys = []string{"id"}
 )
 
+// GenUserDto Dtoを返却します
+func GenUserDto(e User) UserDto {
+	return UserDto{
+		entity:           e,
+		updatedColumnMap: make(map[string]struct{}, 7),
+	}
+}
+
+// GetId getter for id
+func (m UserDto) GetId() int64 {
+	return m.entity.Id
+}
+
+// SetEmail setter for email
+func (m *UserDto) SetEmail(Email string) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["email"] = struct{}{}
+	m.entity.Email = Email
+}
+
+// GetEmail getter for email
+func (m UserDto) GetEmail() string {
+	return m.entity.Email
+}
+
+// SetPasswordDigest setter for password_digest
+func (m *UserDto) SetPasswordDigest(PasswordDigest string) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["password_digest"] = struct{}{}
+	m.entity.PasswordDigest = PasswordDigest
+}
+
+// GetPasswordDigest getter for password_digest
+func (m UserDto) GetPasswordDigest() string {
+	return m.entity.PasswordDigest
+}
+
+// SetVersion setter for version
+func (m *UserDto) SetVersion(Version int) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["version"] = struct{}{}
+	m.entity.Version = Version
+}
+
+// GetVersion getter for version
+func (m UserDto) GetVersion() int {
+	return m.entity.Version
+}
+
+// SetCreatedAt setter for created_at
+func (m *UserDto) SetCreatedAt(CreatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["created_at"] = struct{}{}
+	m.entity.CreatedAt = CreatedAt
+}
+
+// GetCreatedAt getter for created_at
+func (m UserDto) GetCreatedAt() time.Time {
+	return m.entity.CreatedAt
+}
+
+// SetUpdatedAt setter for updated_at
+func (m *UserDto) SetUpdatedAt(UpdatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["updated_at"] = struct{}{}
+	m.entity.UpdatedAt = UpdatedAt
+}
+
+// GetUpdatedAt getter for updated_at
+func (m UserDto) GetUpdatedAt() time.Time {
+	return m.entity.UpdatedAt
+}
+
+// SetDeletedAt setter for deleted_at
+func (m *UserDto) SetDeletedAt(DeletedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["deleted_at"] = struct{}{}
+	m.entity.DeletedAt = DeletedAt
+}
+
+// GetDeletedAt getter for deleted_at
+func (m UserDto) GetDeletedAt() time.Time {
+	return m.entity.DeletedAt
+}
+
+// SetEntity テーブルのエンティティを設定します
+func (m *UserDto) SetEntity(e interface{}) {
+	m.entity = (e).(User)
+}
+
+// Entity テーブルのエンティティを返却します
+func (m UserDto) Entity() interface{} {
+	return m.entity
+}
+
+// PEntity テーブルのエンティティのポインタを返却します
+func (m *UserDto) PEntity() interface{} {
+	return &m.entity
+}
+
 // Table テーブル名を返却します
-func (m User) Table() string {
+func (m UserDto) Table() string {
 	return _UserTableName
 }
 
 // Columns カラム名のスライスを返却します
-func (m User) Columns() []string {
+func (m UserDto) Columns() []string {
 	return _UserColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
-func (m User) PrimaryKeys() []string {
+func (m UserDto) PrimaryKeys() []string {
 	return _UserPrimaryKeys
 }
 
+// CacheKey PrimaryKeyの値のスライスを返却します
+func (m UserDto) PrimaryKeyValues() []interface{} {
+	return []interface{}{
+		m.entity.Id,
+	}
+}
+
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します
-func (m User) CacheKey() string {
+func (m UserDto) CacheKey() string {
 	return fmt.Sprintf(
 		"%v",
-		m.Id,
+		m.entity.Id,
 	)
 }
 
-func (m User) Validate() error {
+func (m UserDto) UpdatedColumns() []string {
+	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
+	i := 0
+	for col := range m.updatedColumnMap {
+		cols[i] = col
+		i++
+	}
+	return cols
+}
 
-	if m.Id < -9223372036854775808 || 9223372036854775807 < m.Id {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Id", m.Id)
+func (m UserDto) Validate() error {
+
+	if m.entity.Id < -9223372036854775808 || 9223372036854775807 < m.entity.Id {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Id", m.entity.Id)
 	}
 
-	if 255 < len(m.Email) {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Email", m.Email)
+	if 255 < len(m.entity.Email) {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Email", m.entity.Email)
 	}
 
-	if len(m.PasswordDigest) != 100 {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "PasswordDigest", m.PasswordDigest)
+	if len(m.entity.PasswordDigest) != 100 {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "PasswordDigest", m.entity.PasswordDigest)
+	}
+
+	if m.entity.Version < -2147483648 || 2147483647 < m.entity.Version {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Version", m.entity.Version)
 	}
 
 	return nil
 }
 
 // IsCreated DBに存在しないレコードのモデルの場合はtrueを返却します
-func (m User) IsCreated() bool {
+func (m UserDto) IsCreated() bool {
 	return m.isCreated
 }
 
 // IsUpdated DBと差分があるレコードのモデルの場合はtrueを返却します
-func (m User) IsUpdated() bool {
+func (m UserDto) IsUpdated() bool {
 	return m.isUpdated
 }
 
 // IsDeleted DBには存在するが削除されるレコードのモデルの場合はtrueを返却します
-func (m User) IsDeleted() bool {
+func (m UserDto) IsDeleted() bool {
 	return m.isDeleted
 }
 
 // AsCreated DBにInsertするレコードのモデルとして設定する
-func (m *User) AsCreated() {
+func (m *UserDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
-func (m *User) AsUpdated() {
+func (m *UserDto) AsUpdated() {
 	if m != nil {
 		m.isUpdated = true
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
-func (m *User) AsDeleted() {
+func (m *UserDto) AsDeleted() {
 	if m != nil {
 		m.isDeleted = true
 	}
 }
 
 // ToMap Mapに変換します
-func (m User) ToMap() map[string]interface{} {
+func (m UserDto) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"Id":             m.Id,
-		"Email":          m.Email,
-		"PasswordDigest": m.PasswordDigest,
-		"CreatedAt":      m.CreatedAt,
-		"UpdatedAt":      m.UpdatedAt,
-		"DeletedAt":      m.DeletedAt,
+		"Id":             m.entity.Id,
+		"Email":          m.entity.Email,
+		"PasswordDigest": m.entity.PasswordDigest,
+		"Version":        m.entity.Version,
+		"CreatedAt":      m.entity.CreatedAt,
+		"UpdatedAt":      m.entity.UpdatedAt,
+		"DeletedAt":      m.entity.DeletedAt,
 	}
 }

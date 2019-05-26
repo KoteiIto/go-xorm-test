@@ -25,10 +25,14 @@ type Group struct {
 	UpdatedAt time.Time `json:"updated_at" xorm:"not null updated DATETIME"`
 	// DeletedAt `json:"deleted_at" xorm:"deleted DATETIME"`
 	DeletedAt time.Time `json:"deleted_at" xorm:"deleted DATETIME"`
+}
 
-	isCreated bool `json:"-" xorm:"-"`
-	isUpdated bool `json:"-" xorm:"-"`
-	isDeleted bool `json:"-" xorm:"-"`
+type GroupDto struct {
+	entity           Group
+	updatedColumnMap map[string]struct{}
+	isCreated        bool
+	isUpdated        bool
+	isDeleted        bool
 }
 
 var (
@@ -37,86 +41,201 @@ var (
 	_GroupPrimaryKeys = []string{"id"}
 )
 
+// GenGroupDto Dtoを返却します
+func GenGroupDto(e Group) GroupDto {
+	return GroupDto{
+		entity:           e,
+		updatedColumnMap: make(map[string]struct{}, 6),
+	}
+}
+
+// GetId getter for id
+func (m GroupDto) GetId() int {
+	return m.entity.Id
+}
+
+// SetName setter for name
+func (m *GroupDto) SetName(Name string) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["name"] = struct{}{}
+	m.entity.Name = Name
+}
+
+// GetName getter for name
+func (m GroupDto) GetName() string {
+	return m.entity.Name
+}
+
+// SetDescription setter for description
+func (m *GroupDto) SetDescription(Description string) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["description"] = struct{}{}
+	m.entity.Description = Description
+}
+
+// GetDescription getter for description
+func (m GroupDto) GetDescription() string {
+	return m.entity.Description
+}
+
+// SetCreatedAt setter for created_at
+func (m *GroupDto) SetCreatedAt(CreatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["created_at"] = struct{}{}
+	m.entity.CreatedAt = CreatedAt
+}
+
+// GetCreatedAt getter for created_at
+func (m GroupDto) GetCreatedAt() time.Time {
+	return m.entity.CreatedAt
+}
+
+// SetUpdatedAt setter for updated_at
+func (m *GroupDto) SetUpdatedAt(UpdatedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["updated_at"] = struct{}{}
+	m.entity.UpdatedAt = UpdatedAt
+}
+
+// GetUpdatedAt getter for updated_at
+func (m GroupDto) GetUpdatedAt() time.Time {
+	return m.entity.UpdatedAt
+}
+
+// SetDeletedAt setter for deleted_at
+func (m *GroupDto) SetDeletedAt(DeletedAt time.Time) {
+	if m == nil {
+		return
+	}
+	m.updatedColumnMap["deleted_at"] = struct{}{}
+	m.entity.DeletedAt = DeletedAt
+}
+
+// GetDeletedAt getter for deleted_at
+func (m GroupDto) GetDeletedAt() time.Time {
+	return m.entity.DeletedAt
+}
+
+// SetEntity テーブルのエンティティを設定します
+func (m *GroupDto) SetEntity(e interface{}) {
+	m.entity = (e).(Group)
+}
+
+// Entity テーブルのエンティティを返却します
+func (m GroupDto) Entity() interface{} {
+	return m.entity
+}
+
+// PEntity テーブルのエンティティのポインタを返却します
+func (m *GroupDto) PEntity() interface{} {
+	return &m.entity
+}
+
 // Table テーブル名を返却します
-func (m Group) Table() string {
+func (m GroupDto) Table() string {
 	return _GroupTableName
 }
 
 // Columns カラム名のスライスを返却します
-func (m Group) Columns() []string {
+func (m GroupDto) Columns() []string {
 	return _GroupColumnNames
 }
 
 // PrimaryKeys 主キー名のスライスを返却します
-func (m Group) PrimaryKeys() []string {
+func (m GroupDto) PrimaryKeys() []string {
 	return _GroupPrimaryKeys
 }
 
+// CacheKey PrimaryKeyの値のスライスを返却します
+func (m GroupDto) PrimaryKeyValues() []interface{} {
+	return []interface{}{
+		m.entity.Id,
+	}
+}
+
 // CacheKey PrimaryKeyを連結して、必ず一意になるKeyを返却します
-func (m Group) CacheKey() string {
+func (m GroupDto) CacheKey() string {
 	return fmt.Sprintf(
 		"%v",
-		m.Id,
+		m.entity.Id,
 	)
 }
 
-func (m Group) Validate() error {
+func (m GroupDto) UpdatedColumns() []string {
+	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
+	i := 0
+	for col := range m.updatedColumnMap {
+		cols[i] = col
+		i++
+	}
+	return cols
+}
 
-	if m.Id < -2147483648 || 2147483647 < m.Id {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Id", m.Id)
+func (m GroupDto) Validate() error {
+
+	if m.entity.Id < -2147483648 || 2147483647 < m.entity.Id {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Id", m.entity.Id)
 	}
 
-	if 255 < len(m.Name) {
-		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Name", m.Name)
+	if 255 < len(m.entity.Name) {
+		return fmt.Errorf("validation error. invalid column value. column=[%s], value=[%v]", "Name", m.entity.Name)
 	}
 
 	return nil
 }
 
 // IsCreated DBに存在しないレコードのモデルの場合はtrueを返却します
-func (m Group) IsCreated() bool {
+func (m GroupDto) IsCreated() bool {
 	return m.isCreated
 }
 
 // IsUpdated DBと差分があるレコードのモデルの場合はtrueを返却します
-func (m Group) IsUpdated() bool {
+func (m GroupDto) IsUpdated() bool {
 	return m.isUpdated
 }
 
 // IsDeleted DBには存在するが削除されるレコードのモデルの場合はtrueを返却します
-func (m Group) IsDeleted() bool {
+func (m GroupDto) IsDeleted() bool {
 	return m.isDeleted
 }
 
 // AsCreated DBにInsertするレコードのモデルとして設定する
-func (m *Group) AsCreated() {
+func (m *GroupDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
-func (m *Group) AsUpdated() {
+func (m *GroupDto) AsUpdated() {
 	if m != nil {
 		m.isUpdated = true
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
-func (m *Group) AsDeleted() {
+func (m *GroupDto) AsDeleted() {
 	if m != nil {
 		m.isDeleted = true
 	}
 }
 
 // ToMap Mapに変換します
-func (m Group) ToMap() map[string]interface{} {
+func (m GroupDto) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"Id":          m.Id,
-		"Name":        m.Name,
-		"Description": m.Description,
-		"CreatedAt":   m.CreatedAt,
-		"UpdatedAt":   m.UpdatedAt,
-		"DeletedAt":   m.DeletedAt,
+		"Id":          m.entity.Id,
+		"Name":        m.entity.Name,
+		"Description": m.entity.Description,
+		"CreatedAt":   m.entity.CreatedAt,
+		"UpdatedAt":   m.entity.UpdatedAt,
+		"DeletedAt":   m.entity.DeletedAt,
 	}
 }

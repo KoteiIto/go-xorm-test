@@ -20,7 +20,7 @@ type GroupMember struct {
 	// Role `json:"role" xorm:"not null ENUM('admin','guest')"`
 	Role string `json:"role" xorm:"not null ENUM('admin','guest')"`
 	// Version `json:"version" xorm:"not null INT(11)"`
-	Version int `json:"version" xorm:"not null INT(11)"`
+	Version int `json:"version" xorm:"version"`
 	// CreatedAt `json:"created_at" xorm:"not null created DATETIME"`
 	CreatedAt time.Time `json:"created_at" xorm:"not null created DATETIME"`
 	// UpdatedAt `json:"updated_at" xorm:"not null updated DATETIME"`
@@ -32,6 +32,7 @@ type GroupMember struct {
 type GroupMemberDto struct {
 	entity           GroupMember
 	updatedColumnMap map[string]struct{}
+	order            int
 	isCreated        bool
 	isUpdated        bool
 	isDeleted        bool
@@ -239,19 +240,25 @@ func (m GroupMemberDto) IsDeleted() bool {
 func (m *GroupMemberDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
+		m.isUpdated = false
+		m.isDeleted = false
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
 func (m *GroupMemberDto) AsUpdated() {
 	if m != nil {
+		m.isCreated = false
 		m.isUpdated = true
+		m.isDeleted = false
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
 func (m *GroupMemberDto) AsDeleted() {
 	if m != nil {
+		m.isCreated = false
+		m.isUpdated = false
 		m.isDeleted = true
 	}
 }
@@ -267,4 +274,14 @@ func (m GroupMemberDto) ToMap() map[string]interface{} {
 		"UpdatedAt": m.entity.UpdatedAt,
 		"DeletedAt": m.entity.DeletedAt,
 	}
+}
+
+// SetOrder Dtoの更新順序を設定する
+func (m *GroupMemberDto) SetOrder(o int) {
+	m.order = o
+}
+
+// Order Dtoの更新順序を返却する
+func (m GroupMemberDto) Order() int {
+	return m.order
 }

@@ -32,6 +32,7 @@ type User struct {
 type UserDto struct {
 	entity           User
 	updatedColumnMap map[string]struct{}
+	order            int
 	isCreated        bool
 	isUpdated        bool
 	isDeleted        bool
@@ -235,19 +236,25 @@ func (m UserDto) IsDeleted() bool {
 func (m *UserDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
+		m.isUpdated = false
+		m.isDeleted = false
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
 func (m *UserDto) AsUpdated() {
 	if m != nil {
+		m.isCreated = false
 		m.isUpdated = true
+		m.isDeleted = false
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
 func (m *UserDto) AsDeleted() {
 	if m != nil {
+		m.isCreated = false
+		m.isUpdated = false
 		m.isDeleted = true
 	}
 }
@@ -263,4 +270,14 @@ func (m UserDto) ToMap() map[string]interface{} {
 		"UpdatedAt":      m.entity.UpdatedAt,
 		"DeletedAt":      m.entity.DeletedAt,
 	}
+}
+
+// SetOrder Dtoの更新順序を設定する
+func (m *UserDto) SetOrder(o int) {
+	m.order = o
+}
+
+// Order Dtoの更新順序を返却する
+func (m UserDto) Order() int {
+	return m.order
 }

@@ -26,6 +26,7 @@ type {{Mapper .Name}}Dto struct {
 {{$table := .}}
 entity {{Mapper .Name}}
 updatedColumnMap map[string]struct{}
+order int
 isCreated bool
 isUpdated bool
 isDeleted bool
@@ -232,19 +233,25 @@ func (m {{Mapper .Name}}Dto) IsDeleted () bool {
 func (m *{{Mapper .Name}}Dto) AsCreated () {
 	if m != nil {
 		m.isCreated = true
+		m.isUpdated = false
+		m.isDeleted = false
 	}	
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
 func (m *{{Mapper .Name}}Dto) AsUpdated () {
 	if m != nil {
+		m.isCreated = false
 		m.isUpdated = true
+		m.isDeleted = false
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
 func (m *{{Mapper .Name}}Dto) AsDeleted () {
 	if m != nil {
+		m.isCreated = false
+		m.isUpdated = false
 		m.isDeleted = true
 	}
 }
@@ -255,6 +262,16 @@ func (m {{Mapper .Name}}Dto) ToMap () map[string]interface{} {
 		{{range $i,$e := $table.Columns}}"{{Mapper $e.Name}}": m.entity.{{Mapper $e.Name}},
 		{{end}}
 	}
+}
+
+// SetOrder Dtoの更新順序を設定する
+func (m *{{Mapper .Name}}Dto) SetOrder (o int) {
+	m.order = o
+}
+
+// Order Dtoの更新順序を返却する
+func (m {{Mapper .Name}}Dto) Order () int {
+	return m.order
 }
 
 {{end}}

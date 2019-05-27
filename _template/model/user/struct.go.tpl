@@ -25,7 +25,7 @@ type {{Mapper .Name}} struct {
 type {{Mapper .Name}}Dto struct {
 {{$table := .}}
 entity {{Mapper .Name}}
-updatedColumnMap map[string]struct{}
+updatedColumnMap map[string]interface{}
 order int
 isCreated bool
 isUpdated bool
@@ -57,7 +57,7 @@ var (
 func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) *{{Mapper .Name}}Dto {
 	return &{{Mapper .Name}}Dto {
 		entity: e,
-		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),
+		updatedColumnMap: make(map[string]interface{}, {{len $table.Columns}}),
 	}
 }
 
@@ -65,7 +65,7 @@ func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) *{{Mapper .Name}}Dto {
 func New{{Mapper .Name}}DtoEmpty() *{{Mapper .Name}}Dto {
 	return &{{Mapper .Name}}Dto {
 		entity: {{Mapper .Name}}{},
-		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),
+		updatedColumnMap: make(map[string]interface{}, {{len $table.Columns}}),
 	}
 }
 
@@ -76,7 +76,11 @@ func (m *{{Mapper $table.Name}}Dto) Set{{Mapper $e.Name}}({{Mapper $e.Name}} {{T
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["{{$e.Name}}"] = struct{}{}
+	
+	if _, ok := m.updatedColumnMap["{{$e.Name}}"]; !ok {
+		m.updatedColumnMap["{{$e.Name}}"] = m.entity.{{Mapper $e.Name}}
+	}
+
 	m.entity.{{Mapper $e.Name}} = {{Mapper $e.Name}}
 }
 {{end}}
@@ -138,11 +142,11 @@ func (m {{Mapper .Name}}Dto) CacheKey () string {
 }
 
 func (m {{Mapper .Name}}Dto) UpdatedColumns() []string {
-	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
-	i := 0
-	for col := range m.updatedColumnMap {
-		cols[i] = col
-		i++
+	cols := make([]string, 0, len(m.updatedColumnMap))
+	for col, val := range m.updatedColumnMap {
+		if val != m.Value(col) {
+			cols = append(cols, col)
+		}
 	}
 	return cols
 }

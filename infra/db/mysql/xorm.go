@@ -17,7 +17,7 @@ func NewXormMysqlDB(uri string) (*XormMysqlDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	engine.ShowSQL(true)
+	// engine.ShowSQL(true)
 	return &XormMysqlDB{engine: engine}, nil
 }
 
@@ -87,7 +87,7 @@ func (sess *XormMysqlSession) Update(ctx context.Context, dto db.CrudDto) (int64
 	cols := dto.UpdatedColumns()
 	if len(cols) == 0 {
 		// 更新されたcolumnが0なのでスキップします。
-		return 0, nil
+		return 1, nil
 	}
 
 	sess.session.Cols(cols...)

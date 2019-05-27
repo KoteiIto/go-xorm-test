@@ -31,7 +31,7 @@ type User struct {
 
 type UserDto struct {
 	entity           User
-	updatedColumnMap map[string]struct{}
+	updatedColumnMap map[string]interface{}
 	order            int
 	isCreated        bool
 	isUpdated        bool
@@ -58,7 +58,7 @@ var (
 func NewUserDto(e User) *UserDto {
 	return &UserDto{
 		entity:           e,
-		updatedColumnMap: make(map[string]struct{}, 7),
+		updatedColumnMap: make(map[string]interface{}, 7),
 	}
 }
 
@@ -66,7 +66,7 @@ func NewUserDto(e User) *UserDto {
 func NewUserDtoEmpty() *UserDto {
 	return &UserDto{
 		entity:           User{},
-		updatedColumnMap: make(map[string]struct{}, 7),
+		updatedColumnMap: make(map[string]interface{}, 7),
 	}
 }
 
@@ -80,7 +80,11 @@ func (m *UserDto) SetEmail(Email string) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["email"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["email"]; !ok {
+		m.updatedColumnMap["email"] = m.entity.Email
+	}
+
 	m.entity.Email = Email
 }
 
@@ -94,7 +98,11 @@ func (m *UserDto) SetPasswordDigest(PasswordDigest string) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["password_digest"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["password_digest"]; !ok {
+		m.updatedColumnMap["password_digest"] = m.entity.PasswordDigest
+	}
+
 	m.entity.PasswordDigest = PasswordDigest
 }
 
@@ -108,7 +116,11 @@ func (m *UserDto) SetVersion(Version int) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["version"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["version"]; !ok {
+		m.updatedColumnMap["version"] = m.entity.Version
+	}
+
 	m.entity.Version = Version
 }
 
@@ -122,7 +134,11 @@ func (m *UserDto) SetCreatedAt(CreatedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["created_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["created_at"]; !ok {
+		m.updatedColumnMap["created_at"] = m.entity.CreatedAt
+	}
+
 	m.entity.CreatedAt = CreatedAt
 }
 
@@ -136,7 +152,11 @@ func (m *UserDto) SetUpdatedAt(UpdatedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["updated_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["updated_at"]; !ok {
+		m.updatedColumnMap["updated_at"] = m.entity.UpdatedAt
+	}
+
 	m.entity.UpdatedAt = UpdatedAt
 }
 
@@ -150,7 +170,11 @@ func (m *UserDto) SetDeletedAt(DeletedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["deleted_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["deleted_at"]; !ok {
+		m.updatedColumnMap["deleted_at"] = m.entity.DeletedAt
+	}
+
 	m.entity.DeletedAt = DeletedAt
 }
 
@@ -210,11 +234,11 @@ func (m UserDto) CacheKey() string {
 }
 
 func (m UserDto) UpdatedColumns() []string {
-	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
-	i := 0
-	for col := range m.updatedColumnMap {
-		cols[i] = col
-		i++
+	cols := make([]string, 0, len(m.updatedColumnMap))
+	for col, val := range m.updatedColumnMap {
+		if val != m.Value(col) {
+			cols = append(cols, col)
+		}
 	}
 	return cols
 }

@@ -31,7 +31,7 @@ type GroupMember struct {
 
 type GroupMemberDto struct {
 	entity           GroupMember
-	updatedColumnMap map[string]struct{}
+	updatedColumnMap map[string]interface{}
 	order            int
 	isCreated        bool
 	isUpdated        bool
@@ -64,7 +64,7 @@ var (
 func NewGroupMemberDto(e GroupMember) *GroupMemberDto {
 	return &GroupMemberDto{
 		entity:           e,
-		updatedColumnMap: make(map[string]struct{}, 7),
+		updatedColumnMap: make(map[string]interface{}, 7),
 	}
 }
 
@@ -72,7 +72,7 @@ func NewGroupMemberDto(e GroupMember) *GroupMemberDto {
 func NewGroupMemberDtoEmpty() *GroupMemberDto {
 	return &GroupMemberDto{
 		entity:           GroupMember{},
-		updatedColumnMap: make(map[string]struct{}, 7),
+		updatedColumnMap: make(map[string]interface{}, 7),
 	}
 }
 
@@ -91,7 +91,11 @@ func (m *GroupMemberDto) SetRole(Role string) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["role"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["role"]; !ok {
+		m.updatedColumnMap["role"] = m.entity.Role
+	}
+
 	m.entity.Role = Role
 }
 
@@ -105,7 +109,11 @@ func (m *GroupMemberDto) SetVersion(Version int) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["version"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["version"]; !ok {
+		m.updatedColumnMap["version"] = m.entity.Version
+	}
+
 	m.entity.Version = Version
 }
 
@@ -119,7 +127,11 @@ func (m *GroupMemberDto) SetCreatedAt(CreatedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["created_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["created_at"]; !ok {
+		m.updatedColumnMap["created_at"] = m.entity.CreatedAt
+	}
+
 	m.entity.CreatedAt = CreatedAt
 }
 
@@ -133,7 +145,11 @@ func (m *GroupMemberDto) SetUpdatedAt(UpdatedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["updated_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["updated_at"]; !ok {
+		m.updatedColumnMap["updated_at"] = m.entity.UpdatedAt
+	}
+
 	m.entity.UpdatedAt = UpdatedAt
 }
 
@@ -147,7 +163,11 @@ func (m *GroupMemberDto) SetDeletedAt(DeletedAt time.Time) {
 	if m == nil {
 		return
 	}
-	m.updatedColumnMap["deleted_at"] = struct{}{}
+
+	if _, ok := m.updatedColumnMap["deleted_at"]; !ok {
+		m.updatedColumnMap["deleted_at"] = m.entity.DeletedAt
+	}
+
 	m.entity.DeletedAt = DeletedAt
 }
 
@@ -207,11 +227,11 @@ func (m GroupMemberDto) CacheKey() string {
 }
 
 func (m GroupMemberDto) UpdatedColumns() []string {
-	cols := make([]string, len(m.updatedColumnMap), len(m.updatedColumnMap))
-	i := 0
-	for col := range m.updatedColumnMap {
-		cols[i] = col
-		i++
+	cols := make([]string, 0, len(m.updatedColumnMap))
+	for col, val := range m.updatedColumnMap {
+		if val != m.Value(col) {
+			cols = append(cols, col)
+		}
 	}
 	return cols
 }

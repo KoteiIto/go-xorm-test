@@ -5,9 +5,9 @@ package user
 import (
 	"fmt"
 	"time"
-)
 
-//go:generate gen
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
+)
 
 // User
 // +gen slice:"Where,GroupBy[int],Any"
@@ -38,6 +38,16 @@ type UserDto struct {
 	isDeleted        bool
 }
 
+const (
+	UserColumnId             = "id"
+	UserColumnEmail          = "email"
+	UserColumnPasswordDigest = "password_digest"
+	UserColumnVersion        = "version"
+	UserColumnCreatedAt      = "created_at"
+	UserColumnUpdatedAt      = "updated_at"
+	UserColumnDeletedAt      = "deleted_at"
+)
+
 var (
 	_UserTableName   = "user"
 	_UserColumnNames = []string{"id", "email", "password_digest", "version", "created_at", "updated_at", "deleted_at"}
@@ -48,6 +58,14 @@ var (
 func NewUserDto(e User) *UserDto {
 	return &UserDto{
 		entity:           e,
+		updatedColumnMap: make(map[string]struct{}, 7),
+	}
+}
+
+// NewUserDtoEmpty 空のDtoを返却します
+func NewUserDtoEmpty() *UserDto {
+	return &UserDto{
+		entity:           User{},
 		updatedColumnMap: make(map[string]struct{}, 7),
 	}
 }
@@ -156,6 +174,11 @@ func (m *UserDto) PEntity() interface{} {
 	return &m.entity
 }
 
+// PEntityEmpty テーブルの空のエンティティのポインタを返却します
+func (m UserDto) PEntityEmpty() interface{} {
+	return &User{}
+}
+
 // Table テーブル名を返却します
 func (m UserDto) Table() string {
 	return _UserTableName
@@ -259,6 +282,28 @@ func (m *UserDto) AsDeleted() {
 	}
 }
 
+// Value カラム名の値を返却します
+func (m UserDto) Value(col string) interface{} {
+	switch col {
+	case UserColumnId:
+		return m.entity.Id
+	case UserColumnEmail:
+		return m.entity.Email
+	case UserColumnPasswordDigest:
+		return m.entity.PasswordDigest
+	case UserColumnVersion:
+		return m.entity.Version
+	case UserColumnCreatedAt:
+		return m.entity.CreatedAt
+	case UserColumnUpdatedAt:
+		return m.entity.UpdatedAt
+	case UserColumnDeletedAt:
+		return m.entity.DeletedAt
+
+	}
+	return nil
+}
+
 // ToMap Mapに変換します
 func (m UserDto) ToMap() map[string]interface{} {
 	return map[string]interface{}{
@@ -280,4 +325,60 @@ func (m *UserDto) SetOrder(o int) {
 // Order Dtoの更新順序を返却する
 func (m UserDto) Order() int {
 	return m.order
+}
+
+func GenUserIdCondition(operator condition.OperatorType, val int64) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnId,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserEmailCondition(operator condition.OperatorType, val string) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnEmail,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserPasswordDigestCondition(operator condition.OperatorType, val string) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnPasswordDigest,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserVersionCondition(operator condition.OperatorType, val int) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnVersion,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserCreatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnCreatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserUpdatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnUpdatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenUserDeletedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   UserColumnDeletedAt,
+		Operator: operator,
+		Value:    val,
+	}
 }

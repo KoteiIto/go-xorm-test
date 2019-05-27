@@ -5,9 +5,9 @@ package user
 import (
 	"fmt"
 	"time"
-)
 
-//go:generate gen
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
+)
 
 // GroupMember
 // +gen slice:"Where,GroupBy[int],Any"
@@ -20,7 +20,7 @@ type GroupMember struct {
 	// Role `json:"role" xorm:"not null ENUM('admin','guest')"`
 	Role string `json:"role" xorm:"not null ENUM('admin','guest')"`
 	// Version `json:"version" xorm:"not null INT(11)"`
-	Version int `json:"version" xorm:"version"`
+	Version int `json:"version" xorm:"not null INT(11)"`
 	// CreatedAt `json:"created_at" xorm:"not null created DATETIME"`
 	CreatedAt time.Time `json:"created_at" xorm:"not null created DATETIME"`
 	// UpdatedAt `json:"updated_at" xorm:"not null updated DATETIME"`
@@ -43,6 +43,16 @@ const (
 	GroupMemberRoleGuest = "guest"
 )
 
+const (
+	GroupMemberColumnUserId    = "user_id"
+	GroupMemberColumnGroupId   = "group_id"
+	GroupMemberColumnRole      = "role"
+	GroupMemberColumnVersion   = "version"
+	GroupMemberColumnCreatedAt = "created_at"
+	GroupMemberColumnUpdatedAt = "updated_at"
+	GroupMemberColumnDeletedAt = "deleted_at"
+)
+
 var (
 	_GroupMemberTableName   = "group_member"
 	_GroupMemberColumnNames = []string{"user_id", "group_id", "role", "version", "created_at", "updated_at", "deleted_at"}
@@ -54,6 +64,14 @@ var (
 func NewGroupMemberDto(e GroupMember) *GroupMemberDto {
 	return &GroupMemberDto{
 		entity:           e,
+		updatedColumnMap: make(map[string]struct{}, 7),
+	}
+}
+
+// NewGroupMemberDtoEmpty 空のDtoを返却します
+func NewGroupMemberDtoEmpty() *GroupMemberDto {
+	return &GroupMemberDto{
+		entity:           GroupMember{},
 		updatedColumnMap: make(map[string]struct{}, 7),
 	}
 }
@@ -151,6 +169,11 @@ func (m GroupMemberDto) Entity() interface{} {
 // PEntity テーブルのエンティティのポインタを返却します
 func (m *GroupMemberDto) PEntity() interface{} {
 	return &m.entity
+}
+
+// PEntityEmpty テーブルの空のエンティティのポインタを返却します
+func (m GroupMemberDto) PEntityEmpty() interface{} {
+	return &GroupMember{}
 }
 
 // Table テーブル名を返却します
@@ -263,6 +286,28 @@ func (m *GroupMemberDto) AsDeleted() {
 	}
 }
 
+// Value カラム名の値を返却します
+func (m GroupMemberDto) Value(col string) interface{} {
+	switch col {
+	case GroupMemberColumnUserId:
+		return m.entity.UserId
+	case GroupMemberColumnGroupId:
+		return m.entity.GroupId
+	case GroupMemberColumnRole:
+		return m.entity.Role
+	case GroupMemberColumnVersion:
+		return m.entity.Version
+	case GroupMemberColumnCreatedAt:
+		return m.entity.CreatedAt
+	case GroupMemberColumnUpdatedAt:
+		return m.entity.UpdatedAt
+	case GroupMemberColumnDeletedAt:
+		return m.entity.DeletedAt
+
+	}
+	return nil
+}
+
 // ToMap Mapに変換します
 func (m GroupMemberDto) ToMap() map[string]interface{} {
 	return map[string]interface{}{
@@ -284,4 +329,60 @@ func (m *GroupMemberDto) SetOrder(o int) {
 // Order Dtoの更新順序を返却する
 func (m GroupMemberDto) Order() int {
 	return m.order
+}
+
+func GenGroupMemberUserIdCondition(operator condition.OperatorType, val int64) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnUserId,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberGroupIdCondition(operator condition.OperatorType, val int) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnGroupId,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberRoleCondition(operator condition.OperatorType, val string) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnRole,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberVersionCondition(operator condition.OperatorType, val int) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnVersion,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberCreatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnCreatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberUpdatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnUpdatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupMemberDeletedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupMemberColumnDeletedAt,
+		Operator: operator,
+		Value:    val,
+	}
 }

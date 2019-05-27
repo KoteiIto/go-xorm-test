@@ -7,10 +7,10 @@ package {{.Models}}
 import (
 	"fmt"
 	{{range .Imports}}"{{.}}"{{end}}
+
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
 )
 {{end}}
-
-//go:generate gen
 
 {{range .Tables}}
 // {{Mapper .Name}} {{.Comment}}
@@ -26,6 +26,7 @@ type {{Mapper .Name}}Dto struct {
 {{$table := .}}
 entity {{Mapper .Name}}
 updatedColumnMap map[string]struct{}
+order int
 isCreated bool
 isUpdated bool
 isDeleted bool
@@ -39,6 +40,11 @@ const (
 )
 {{end}}
 {{end}}
+
+const (
+{{range $i,$e := $table.Columns}}{{Mapper $table.Name}}Column{{Mapper $e.Name}} = "{{$e.Name}}"
+{{end}}
+)
 
 var (
 	_{{Mapper .Name}}TableName = "{{.Name}}"
@@ -232,21 +238,37 @@ func (m {{Mapper .Name}}Dto) IsDeleted () bool {
 func (m *{{Mapper .Name}}Dto) AsCreated () {
 	if m != nil {
 		m.isCreated = true
+		m.isUpdated = false
+		m.isDeleted = false
 	}	
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
 func (m *{{Mapper .Name}}Dto) AsUpdated () {
 	if m != nil {
+		m.isCreated = false
 		m.isUpdated = true
+		m.isDeleted = false
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
 func (m *{{Mapper .Name}}Dto) AsDeleted () {
 	if m != nil {
+		m.isCreated = false
+		m.isUpdated = false
 		m.isDeleted = true
 	}
+}
+
+// Value カラム名の値を返却します
+func (m {{Mapper .Name}}Dto) Value (col string) interface{} {
+	switch col {
+		{{range $i,$e := $table.Columns}}case {{Mapper $table.Name}}Column{{Mapper $e.Name}}: 
+			return m.entity.{{Mapper $e.Name}}
+		{{end}}
+	}
+	return nil
 }
 
 // ToMap Mapに変換します
@@ -256,5 +278,25 @@ func (m {{Mapper .Name}}Dto) ToMap () map[string]interface{} {
 		{{end}}
 	}
 }
+
+// SetOrder Dtoの更新順序を設定する
+func (m *{{Mapper .Name}}Dto) SetOrder (o int) {
+	m.order = o
+}
+
+// Order Dtoの更新順序を返却する
+func (m {{Mapper .Name}}Dto) Order () int {
+	return m.order
+}
+
+{{range $i,$e := $table.Columns}}
+func Gen{{Mapper $table.Name}}{{Mapper $e.Name}}Condition (operator condition.OperatorType, val {{Type $e}}) condition.Condition {
+	return condition.Condition {
+		Column: {{Mapper $table.Name}}Column{{Mapper $e.Name}},
+		Operator: operator,
+		Value: val,
+	}
+}
+{{end}}
 
 {{end}}

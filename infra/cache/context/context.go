@@ -3,9 +3,11 @@ package context
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sort"
 
 	projectContext "github.com/KoteiIto/go-xorm-test/context"
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
 	"github.com/KoteiIto/go-xorm-test/domain/repository/db"
 )
 
@@ -49,10 +51,10 @@ func (sess *ContextCacheAdapter) Reset(ctx context.Context) error {
 	return nil
 }
 
-func (sess *ContextCacheAdapter) Sync(ctx context.Context) error {
+func (sess *ContextCacheAdapter) Sync(ctx context.Context) ([]db.CrudDto, error) {
 	c, ok := ctx.Value(projectContext.ContextCacheKey).(*contextCache)
 	if !ok || c == nil {
-		return fmt.Errorf("context cache has not been initialized")
+		return nil, fmt.Errorf("context cache has not been initialized")
 	}
 
 	defer sess.Reset(ctx)
@@ -77,7 +79,7 @@ func (sess *ContextCacheAdapter) Sync(ctx context.Context) error {
 
 	err := sess.session.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, dto := range dtos {
@@ -98,14 +100,18 @@ func (sess *ContextCacheAdapter) Sync(ctx context.Context) error {
 		}
 		if err != nil {
 			sess.session.Rollback()
-			return err
+			return nil, err
 		}
 	}
 
-	return sess.session.Commit()
+	err = sess.session.Commit()
+	if err != nil {
+		return nil, err
+	}
+	return dtos, nil
 }
 
-func (sess *ContextCacheAdapter) Get(ctx context.Context, dto db.CrudDto, conditions ...db.Condition) (bool, error) {
+func (sess *ContextCacheAdapter) Get(ctx context.Context, dto db.CrudDto, conditions ...condition.Condition) (bool, error) {
 	c, ok := ctx.Value(projectContext.ContextCacheKey).(*contextCache)
 	if !ok || c == nil {
 		return false, fmt.Errorf("context cache has not been initialized")
@@ -114,11 +120,58 @@ func (sess *ContextCacheAdapter) Get(ctx context.Context, dto db.CrudDto, condit
 	table := dto.Table()
 	_tableCache, ok := c.tableCacheMap[table]
 	if ok {
+		if found := get(&_tableCache, conditions); found != nil {
+			if found.IsDeleted() {
+				return false, nil
+			}
 
+			rdto := reflect.ValueOf(dto)
+			if rdto.Kind() != reflect.Ptr || rdto.IsNil() {
+				return false, fmt.Errorf("dto is not pointer table=%s", table)
+			}
+			rdto.Elem().Set(reflect.ValueOf(found).Elem())
+			return true, nil
+		}
+	} else {
+		_tableCache = tableCache{
+			selectedDtoMap: make(map[string]db.CrudDto),
+			changedDtoMap:  make(map[string]db.CrudDto),
+		}
+		c.tableCacheMap[table] = _tableCache
 	}
+
+	has, err := sess.session.Get(ctx, dto, conditions...)
+	if err != nil {
+		return has, err
+	}
+
+	if has {
+		_tableCache.selectedDtoMap[dto.CacheKey()] = dto
+	}
+
+	return has, nil
 }
 
-func find(_tableCache tableCache, condtions []db.Condition) *db.CrudDto {
+func get(_tableCache *tableCache, conditions []condition.Condition) db.CrudDto {
+CHANGED_LOOP:
+	for _, dto := range _tableCache.changedDtoMap {
+		for _, con := range conditions {
+			if !con.Check(dto.Value(con.Column)) {
+				continue CHANGED_LOOP
+			}
+		}
+		return dto
+	}
+
+SELECTED_LOOP:
+	for _, dto := range _tableCache.selectedDtoMap {
+		for _, con := range conditions {
+			if !con.Check(dto.Value(con.Column)) {
+				continue SELECTED_LOOP
+			}
+		}
+		return dto
+	}
 	return nil
 }
 
@@ -163,7 +216,6 @@ func (sess *ContextCacheAdapter) Insert(ctx context.Context, dto db.CrudDto) (in
 			selectedDtoMap: make(map[string]db.CrudDto),
 			changedDtoMap:  make(map[string]db.CrudDto),
 		}
-		c.tableCacheMap[table] = _tableCache
 	}
 
 	order := c.nextOrder()
@@ -204,8 +256,7 @@ func (sess *ContextCacheAdapter) Update(ctx context.Context, dto db.CrudDto) (in
 				existDto.SetEntity(dto.Entity())
 				return 1, nil
 			case dto.IsUpdated():
-				existDto.SetEntity(dto.Entity())
-				return 1, nil
+				delete(_tableCache.changedDtoMap, cacheKey)
 			case dto.IsDeleted():
 				return 0, nil
 			default:
@@ -217,7 +268,6 @@ func (sess *ContextCacheAdapter) Update(ctx context.Context, dto db.CrudDto) (in
 			selectedDtoMap: make(map[string]db.CrudDto),
 			changedDtoMap:  make(map[string]db.CrudDto),
 		}
-		c.tableCacheMap[table] = _tableCache
 	}
 
 	order := c.nextOrder()
@@ -269,7 +319,6 @@ func (sess *ContextCacheAdapter) Delete(ctx context.Context, dto db.CrudDto) (in
 			selectedDtoMap: make(map[string]db.CrudDto),
 			changedDtoMap:  make(map[string]db.CrudDto),
 		}
-		c.tableCacheMap[table] = _tableCache
 	}
 
 	order := c.nextOrder()

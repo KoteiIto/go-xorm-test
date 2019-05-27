@@ -7,10 +7,10 @@ package {{.Models}}
 import (
 	"fmt"
 	{{range .Imports}}"{{.}}"{{end}}
+
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
 )
 {{end}}
-
-//go:generate gen
 
 {{range .Tables}}
 // {{Mapper .Name}} {{.Comment}}
@@ -41,6 +41,11 @@ const (
 {{end}}
 {{end}}
 
+const (
+{{range $i,$e := $table.Columns}}{{Mapper $table.Name}}Column{{Mapper $e.Name}} = "{{$e.Name}}"
+{{end}}
+)
+
 var (
 	_{{Mapper .Name}}TableName = "{{.Name}}"
 	_{{Mapper .Name}}ColumnNames = []string{ {{range $i,$e := $table.Columns}}{{if $i}},{{end}}"{{$e.Name}}"{{end}} }
@@ -52,6 +57,14 @@ var (
 func New{{Mapper .Name}}Dto(e {{Mapper .Name}}) *{{Mapper .Name}}Dto {
 	return &{{Mapper .Name}}Dto {
 		entity: e,
+		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),
+	}
+}
+
+// New{{Mapper .Name}}DtoEmpty 空のDtoを返却します
+func New{{Mapper .Name}}DtoEmpty() *{{Mapper .Name}}Dto {
+	return &{{Mapper .Name}}Dto {
+		entity: {{Mapper .Name}}{},
 		updatedColumnMap: make(map[string]struct{}, {{len $table.Columns}}),
 	}
 }
@@ -87,6 +100,11 @@ func (m {{Mapper .Name}}Dto) Entity() interface{} {
 // PEntity テーブルのエンティティのポインタを返却します
 func (m *{{Mapper .Name}}Dto) PEntity() interface{} {
 	return &m.entity
+}
+
+// PEntityEmpty テーブルの空のエンティティのポインタを返却します
+func (m {{Mapper .Name}}Dto) PEntityEmpty() interface{} {
+	return &{{Mapper .Name}}{}
 }
 
 // Table テーブル名を返却します
@@ -256,6 +274,16 @@ func (m *{{Mapper .Name}}Dto) AsDeleted () {
 	}
 }
 
+// Value カラム名の値を返却します
+func (m {{Mapper .Name}}Dto) Value (col string) interface{} {
+	switch col {
+		{{range $i,$e := $table.Columns}}case {{Mapper $table.Name}}Column{{Mapper $e.Name}}: 
+			return m.entity.{{Mapper $e.Name}}
+		{{end}}
+	}
+	return nil
+}
+
 // ToMap Mapに変換します
 func (m {{Mapper .Name}}Dto) ToMap () map[string]interface{} {
 	return map[string]interface{}{ 
@@ -273,5 +301,15 @@ func (m *{{Mapper .Name}}Dto) SetOrder (o int) {
 func (m {{Mapper .Name}}Dto) Order () int {
 	return m.order
 }
+
+{{range $i,$e := $table.Columns}}
+func Gen{{Mapper $table.Name}}{{Mapper $e.Name}}Condition (operator condition.OperatorType, val {{Type $e}}) condition.Condition {
+	return condition.Condition {
+		Column: {{Mapper $table.Name}}Column{{Mapper $e.Name}},
+		Operator: operator,
+		Value: val,
+	}
+}
+{{end}}
 
 {{end}}

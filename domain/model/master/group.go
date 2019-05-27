@@ -5,9 +5,9 @@ package master
 import (
 	"fmt"
 	"time"
-)
 
-//go:generate gen
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
+)
 
 // Group
 // +gen slice:"Where,GroupBy[int],Any"
@@ -30,10 +30,20 @@ type Group struct {
 type GroupDto struct {
 	entity           Group
 	updatedColumnMap map[string]struct{}
+	order            int
 	isCreated        bool
 	isUpdated        bool
 	isDeleted        bool
 }
+
+const (
+	GroupColumnId          = "id"
+	GroupColumnName        = "name"
+	GroupColumnDescription = "description"
+	GroupColumnCreatedAt   = "created_at"
+	GroupColumnUpdatedAt   = "updated_at"
+	GroupColumnDeletedAt   = "deleted_at"
+)
 
 var (
 	_GroupTableName   = "group"
@@ -211,21 +221,47 @@ func (m GroupDto) IsDeleted() bool {
 func (m *GroupDto) AsCreated() {
 	if m != nil {
 		m.isCreated = true
+		m.isUpdated = false
+		m.isDeleted = false
 	}
 }
 
 // AsUpdated DBにUpdateするレコードのモデルとして設定する
 func (m *GroupDto) AsUpdated() {
 	if m != nil {
+		m.isCreated = false
 		m.isUpdated = true
+		m.isDeleted = false
 	}
 }
 
 // AsDeleted DBにDeleteするレコードのモデルとして設定する
 func (m *GroupDto) AsDeleted() {
 	if m != nil {
+		m.isCreated = false
+		m.isUpdated = false
 		m.isDeleted = true
 	}
+}
+
+// Value カラム名の値を返却します
+func (m GroupDto) Value(col string) interface{} {
+	switch col {
+	case GroupColumnId:
+		return m.entity.Id
+	case GroupColumnName:
+		return m.entity.Name
+	case GroupColumnDescription:
+		return m.entity.Description
+	case GroupColumnCreatedAt:
+		return m.entity.CreatedAt
+	case GroupColumnUpdatedAt:
+		return m.entity.UpdatedAt
+	case GroupColumnDeletedAt:
+		return m.entity.DeletedAt
+
+	}
+	return nil
 }
 
 // ToMap Mapに変換します
@@ -237,5 +273,63 @@ func (m GroupDto) ToMap() map[string]interface{} {
 		"CreatedAt":   m.entity.CreatedAt,
 		"UpdatedAt":   m.entity.UpdatedAt,
 		"DeletedAt":   m.entity.DeletedAt,
+	}
+}
+
+// SetOrder Dtoの更新順序を設定する
+func (m *GroupDto) SetOrder(o int) {
+	m.order = o
+}
+
+// Order Dtoの更新順序を返却する
+func (m GroupDto) Order() int {
+	return m.order
+}
+
+func GenGroupIdCondition(operator condition.OperatorType, val int) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnId,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupNameCondition(operator condition.OperatorType, val string) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnName,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupDescriptionCondition(operator condition.OperatorType, val string) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnDescription,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupCreatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnCreatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupUpdatedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnUpdatedAt,
+		Operator: operator,
+		Value:    val,
+	}
+}
+
+func GenGroupDeletedAtCondition(operator condition.OperatorType, val time.Time) condition.Condition {
+	return condition.Condition{
+		Column:   GroupColumnDeletedAt,
+		Operator: operator,
+		Value:    val,
 	}
 }

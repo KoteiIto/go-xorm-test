@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 
+	"github.com/KoteiIto/go-xorm-test/domain/model/condition"
 	"github.com/KoteiIto/go-xorm-test/domain/repository/db"
 	"github.com/go-xorm/xorm"
 )
@@ -49,9 +50,9 @@ type XormMysqlSession struct {
 	session *xorm.Session
 }
 
-func (sess *XormMysqlSession) Get(ctx context.Context, dto db.CrudDto, conditions ...db.Condition) (bool, error) {
-	for _, condition := range conditions {
-		sess.session.Where(condition.Column+" "+string(condition.Operator)+" ?", condition.Value)
+func (sess *XormMysqlSession) Get(ctx context.Context, dto db.CrudDto, conditions ...condition.Condition) (bool, error) {
+	for _, con := range conditions {
+		sess.session.Where(con.Column+" "+string(con.Operator)+" ?", con.Value)
 	}
 	e := dto.PEntity()
 	has, err := sess.session.Get(e)
@@ -107,7 +108,12 @@ func (sess *XormMysqlSession) Update(ctx context.Context, dto db.CrudDto) (int64
 }
 
 func (sess *XormMysqlSession) Delete(ctx context.Context, dto db.CrudDto) (int64, error) {
-	affected, err := sess.session.Delete(dto.PEntity())
+	keys, vals := dto.PrimaryKeys(), dto.PrimaryKeyValues()
+	for i := range keys {
+		sess.session.Where(keys[i]+" = ?", vals[i])
+	}
+
+	affected, err := sess.session.Delete(dto.PEntityEmpty())
 	if err != nil {
 		return affected, err
 	}
